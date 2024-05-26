@@ -85,6 +85,8 @@ setup_backend() {
         echo "OpenDevin repository already cloned."
     fi
 
+    # Change directory to OpenDevin
+    echo "Changing directory to OpenDevin..."
     cd OpenDevin || { log_error "Failed to change directory to OpenDevin"; return 1; }
 
     # Create and activate Conda environment
@@ -101,10 +103,6 @@ setup_backend() {
     python -m pipenv install -v || { log_error "Failed to install backend dependencies"; return 1; }
     python -m pipenv shell || { log_error "Failed to activate Pipenv shell"; return 1; }
 
-    # Start backend server
-    echo "Starting backend server..."
-    uvicorn opendevin.server.listen:app --port 3000 || { log_error "Failed to start backend server"; return 1; }
-
     echo "✅ Backend setup completed successfully."
 }
 
@@ -112,17 +110,53 @@ setup_backend() {
 setup_frontend() {
     echo "Setting up frontend..."
 
+    # Change directory to frontend
+    echo "Changing directory to frontend..."
     cd frontend || { log_error "Failed to change directory to frontend"; return 1; }
 
     # Install frontend dependencies
     echo "Installing frontend dependencies..."
     npm install || { log_error "Failed to install frontend dependencies"; return 1; }
 
+    echo "✅ Frontend setup completed successfully."
+}
+
+# Function to start the backend and frontend servers
+start_servers() {
+    echo "Starting backend and frontend servers..."
+
+    # Start backend server
+    echo "Starting backend server..."
+    cd ../OpenDevin || { log_error "Failed to change directory to OpenDevin"; return 1; }
+    uvicorn opendevin.server.listen:app --port 3000 &
+    backend_pid=$!
+    echo "Backend server started with PID: $backend_pid"
+
     # Start frontend server
     echo "Starting frontend server..."
-    npm run start -- --port 3001 || { log_error "Failed to start frontend server"; return 1; }
+    cd ../frontend || { log_error "Failed to change directory to frontend"; return 1; }
+    npm run start -- --port 3001 &
+    frontend_pid=$!
+    echo "Frontend server started with PID: $frontend_pid"
 
-    echo "✅ Frontend setup completed successfully."
+    # Wait for user input to stop the servers
+    echo "Press any key to stop the servers..."
+    read -n 1
+    echo "Stopping servers..."
+
+    # Stop backend server
+    echo "Stopping backend server..."
+    kill $backend_pid
+    wait $backend_pid 2>/dev/null
+    echo "Backend server stopped."
+
+    # Stop frontend server
+    echo "Stopping frontend server..."
+    kill $frontend_pid
+    wait $frontend_pid 2>/dev/null
+    echo "Frontend server stopped."
+
+    echo "✅ Backend and frontend servers stopped successfully."
 }
 
 # Function to configure API key and workspace directory
@@ -187,6 +221,7 @@ main_menu() {
         echo "3. Setup Frontend"
         echo "4. Configure Settings"
         echo "5. Advanced Settings"
+        echo "6. Start Servers"
         echo "0. Exit"
         echo -n "Enter selection: "
         read selection
@@ -207,6 +242,9 @@ main_menu() {
             5)
                 advanced_settings
                 ;;
+            6)
+                start_servers
+                ;;
             0)
                 echo "Exiting..."
                 exit 0
@@ -221,6 +259,7 @@ main_menu() {
 # Check if the installation state file exists
 if [ -f "$INSTALL_STATE_FILE" ]; then
     echo "Previous installation detected. Skipping initial installation steps."
+    main_menu
 else
     echo "No previous installation detected. Starting initial installation."
     touch $INSTALL_STATE_FILE
