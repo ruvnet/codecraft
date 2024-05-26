@@ -1,0 +1,15 @@
+{
+    "name": "OpenDevin Dev Container",
+    "build": {
+      "dockerfile": "Dockerfile"
+    },
+    "settings": {
+      "terminal.integrated.shell.linux": "/bin/bash"
+    },
+    "forwardPorts": [
+      3000,
+      3001
+    ],
+    "postCreateCommand": "pip install -r requirements.txt"
+  }
+  

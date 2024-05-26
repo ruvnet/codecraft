@@ -1,0 +1,13 @@
+fastapi
+uvicorn
+uvloop
+litellm
+toml
+termcolor
+docker
+python-docx
+h11
+contourpy
+cycler
+hnswlib
+playwright
