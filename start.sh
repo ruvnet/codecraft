@@ -52,17 +52,14 @@ install_libgl() {
     fi
 }
 
-# Function to install Playwright browsers
-install_playwright_browsers() {
-    echo "Checking Playwright browsers installation..."
+# Function to install Playwright and its browsers
+install_playwright_and_browsers() {
+    echo "Checking Playwright installation and installing browsers..."
 
-    if ! command_exists playwright; then
-        echo "Playwright is not installed. Installing Playwright..."
-        pip install playwright || { echo "Failed to install Playwright"; exit 1; }
-    fi
+    pip install playwright || { echo "Failed to install Playwright"; exit 1; }
 
     echo "Installing Playwright browsers..."
-    npx playwright install || { echo "Failed to install Playwright browsers"; exit 1; }
+    playwright install || { echo "Failed to install Playwright browsers"; exit 1; }
 }
 
 # Function to install Poetry
@@ -147,8 +144,8 @@ install_python_packages
 # Install libGL
 install_libgl
 
-# Install Playwright browsers
-install_playwright_browsers
+# Install Playwright and its browsers
+install_playwright_and_browsers
 
 # Install Poetry
 install_poetry
